@@ -1,0 +1,44 @@
+{
+  "project_info": {
+    "project_number": "566745739762",
+    "firebase_url": "https://unipismartalert-3d88c.firebaseio.com",
+    "project_id": "unipismartalert-3d88c",
+    "storage_bucket": "unipismartalert-3d88c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:566745739762:android:741414d4b8f59523",
+        "android_client_info": {
+          "package_name": "com.papadopoulou.christina.unipismartalert"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "566745739762-1a4ck0p82vheh4suiilu8qnpbfgn3ndc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.papadopoulou.christina.unipismartalert",
+            "certificate_hash": "319530d4604ba16e620ac941a468e2838fe014ab"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZR4UIyI5UNtO4daCBuYlVuWP-kQ5wFPc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "566745739762-m681vikb1fk2lm7gtm4asc28g4u69bhd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
