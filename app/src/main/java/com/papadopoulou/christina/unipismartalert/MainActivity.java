@@ -1,81 +1,56 @@
 package com.papadopoulou.christina.unipismartalert;
 
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
+import android.widget.Toast;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
-import java.util.HashMap;
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
+    private SensorManager sensorManager;
+    private Sensor accelerometer;
 
-public class MainActivity extends AppCompatActivity {
-    protected FirebaseDatabase database;
-    private DatabaseReference myRef;
-    private EditText editTextName;
-    protected Button buttonSingUp;
+    FirebaseDatabase database;
+    DatabaseReference myRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        editTextName = findViewById(R.id.editTextName);
-        buttonSingUp = findViewById(R.id.buttonSingUp);
+        sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+    }
 
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("message");
+    @Override
+    protected void onResume() {
+        super.onResume();
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+    }
 
-        final HashMap<String, String> hashMap = new HashMap<>();
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+            int x = Math.round(event.values[0]);
+            int y = Math.round(event.values[1]);
+            int z = Math.round(event.values[2]);
 
-        buttonSingUp.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                hashMap.put("LONG", "100");
-                hashMap.put("LAT", "30");
-                myRef.child("xristos").setValue(hashMap);
-
-                hashMap.put("LONG", "200");
-                hashMap.put("LAT", "20");
-                myRef.child("makis").setValue(hashMap);
-            }
-        });
-
-
-
-        // Read from the database
-        myRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
-                    Log.e("Get Data",  currentDataSnapshot.getKey());
-
-                    String usr = currentDataSnapshot.getKey();
-
-                    for(DataSnapshot makisSnap : dataSnapshot.child(usr).getChildren()){
-
-                        String val = makisSnap.getValue(String.class);
-                        if(val.equals("200")){
-
-                            Log.e("JIM", "to vrika " + currentDataSnapshot.getKey());
-                        }
-                        Log.e("Get Data", " " + makisSnap.getValue());
-                    }
-
-                }
+            if(z == 0){
+                Toast.makeText(this, "PTOSI EGINE", Toast.LENGTH_SHORT).show();
+                Log.e("XRISTINA", "Eleutheri ptosi");
             }
 
-            @Override
-            public void onCancelled(DatabaseError error) {
-                // Failed to read value
-                Log.w("XRISTINA", "Failed to read value.", error.toException());
-            }
-        });
+
+            Log.e("XRISTINA", "X " + x + "  Y " + y + "  Z " + z);
+
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 }
