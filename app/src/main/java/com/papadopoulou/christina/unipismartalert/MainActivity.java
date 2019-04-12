@@ -1,11 +1,18 @@
 package com.papadopoulou.christina.unipismartalert;
 
+import android.content.AsyncQueryHandler;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -15,11 +22,20 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
+    //
     protected FirebaseDatabase database;
     private DatabaseReference myRef;
+    //Sensor Framework
+    private SensorManager sensorManager;
+    //Sensor Type
+    private Sensor accelerometer;
+
     private EditText editTextName;
     protected Button buttonSingUp;
+
+    SensorEvent event;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +46,9 @@ public class MainActivity extends AppCompatActivity {
 
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("message");
+
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
         final HashMap<String, String> hashMap = new HashMap<>();
 
@@ -47,21 +66,20 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-
         // Read from the database
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
                 for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
-                    Log.e("Get Data",  currentDataSnapshot.getKey());
+                    Log.e("Get Data", currentDataSnapshot.getKey());
 
                     String usr = currentDataSnapshot.getKey();
 
-                    for(DataSnapshot makisSnap : dataSnapshot.child(usr).getChildren()){
+                    for (DataSnapshot makisSnap : dataSnapshot.child(usr).getChildren()) {
 
                         String val = makisSnap.getValue(String.class);
-                        if(val.equals("200")){
+                        if (val.equals("200")) {
 
                             Log.e("JIM", "to vrika " + currentDataSnapshot.getKey());
                         }
@@ -71,11 +89,40 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
+
             @Override
             public void onCancelled(DatabaseError error) {
                 // Failed to read value
                 Log.w("XRISTINA", "Failed to read value.", error.toException());
             }
+
         });
+
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        int x = Math.round(event.values[0]);
+        int y = Math.round(event.values[1]);
+        int z = Math.round(event.values[2]);
+
+        if (z == 0) {
+            Toast.makeText(this, "PTOSI EGINE", Toast.LENGTH_SHORT).show();
+            Log.e("XRISTINA", "Eleutheri ptosi");
+        }
+
+
+        Log.e("XRISTINA", "X " + x + "  Y " + y + "  Z " + z);
+
+    }
+    protected void onResume() {
+        super.onResume();
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 }
