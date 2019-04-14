@@ -21,4 +21,17 @@
         android:layout_centerInParent="true"
         android:text="@string/sign_up" />
 
+    <TextView
+        android:id="@+id/textViewTimer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/buttonSingUp"
+        android:layout_centerInParent="true"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="15dp"
+        android:layout_marginBottom="-60dp"
+        android:textSize="30sp"
+        android:text="HELLO" />
+
 </RelativeLayout>

@@ -1,17 +1,18 @@
 package com.papadopoulou.christina.unipismartalert;
 
-import android.content.AsyncQueryHandler;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.support.annotation.NonNull;
+import android.media.MediaPlayer;
+import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
@@ -34,8 +35,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private EditText editTextName;
     protected Button buttonSingUp;
-
-    SensorEvent event;
+    private TextView textViewTimer;
+    private boolean flagtimer;
+    private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_main);
         editTextName = findViewById(R.id.editTextName);
         buttonSingUp = findViewById(R.id.buttonSingUp);
+        textViewTimer = findViewById(R.id.textViewTimer);
 
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("message");
@@ -98,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         });
 
+        mediaPlayer = MediaPlayer.create(getBaseContext(), (R.raw.tick));
     }
 
     @Override
@@ -106,15 +110,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         int y = Math.round(event.values[1]);
         int z = Math.round(event.values[2]);
 
-        if (z == 0) {
+        if (z == 0 & !flagtimer) {
+            flagtimer = true;
+            new CountDownTimer(30000, 1000) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    Log.e("ONTICK", "seconds remaining: " + millisUntilFinished / 1000);
+                    textViewTimer.setText(String.valueOf(millisUntilFinished / 1000));
+                    mediaPlayer.start();
+                }
+
+                @Override
+                public void onFinish() {
+                    flagtimer = false;
+                }
+            }.start();
+
             Toast.makeText(this, "PTOSI EGINE", Toast.LENGTH_SHORT).show();
             Log.e("XRISTINA", "Eleutheri ptosi");
         }
 
 
-        Log.e("XRISTINA", "X " + x + "  Y " + y + "  Z " + z);
+        //Log.e("XRISTINA", "X " + x + "  Y " + y + "  Z " + z);
 
     }
+
     protected void onResume() {
         super.onResume();
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
