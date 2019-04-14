@@ -1,5 +1,6 @@
 package com.papadopoulou.christina.unipismartalert;
 
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -27,14 +28,13 @@ import java.util.HashMap;
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     //
     protected FirebaseDatabase database;
-    private DatabaseReference myRef;
+    public DatabaseReference myRef;
     //Sensor Framework
     private SensorManager sensorManager;
     //Sensor Type
     private Sensor accelerometer;
 
-    private EditText editTextName;
-    protected Button buttonSingUp;
+    private Button buttonSignUp;
     private TextView textViewTimer;
     private boolean flagtimer;
     private MediaPlayer mediaPlayer;
@@ -43,8 +43,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        editTextName = findViewById(R.id.editTextName);
-        buttonSingUp = findViewById(R.id.buttonSingUp);
+        EditText editTextName = findViewById(R.id.editTextName);
+        Button buttonLogin = findViewById(R.id.buttonLogin);
+        Button buttonSignUp = findViewById(R.id.buttonSingUp);
         textViewTimer = findViewById(R.id.textViewTimer);
 
         database = FirebaseDatabase.getInstance();
@@ -55,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         final HashMap<String, String> hashMap = new HashMap<>();
 
-        buttonSingUp.setOnClickListener(new View.OnClickListener() {
+        buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 hashMap.put("LONG", "100");
@@ -67,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 myRef.child("makis").setValue(hashMap);
             }
         });
-
 
         // Read from the database
         myRef.addValueEventListener(new ValueEventListener() {
@@ -102,12 +102,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
 
         mediaPlayer = MediaPlayer.create(getBaseContext(), (R.raw.tick));
+
+        buttonSignUp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(),SingUpActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        int x = Math.round(event.values[0]);
-        int y = Math.round(event.values[1]);
+
         int z = Math.round(event.values[2]);
 
         if (z == 0 & !flagtimer) {

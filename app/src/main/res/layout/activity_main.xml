@@ -9,16 +9,25 @@
         android:id="@+id/editTextName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/buttonSingUp"
+        android:layout_alignBottom="@+id/buttonLogin"
 
         android:layout_centerInParent="true"
         android:layout_marginBottom="80dp" />
 
     <Button
-        android:id="@+id/buttonSingUp"
+        android:id="@+id/buttonLogin"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
+        android:text="@string/login" />
+
+    <Button
+        android:id="@+id/buttonSingUp"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/buttonLogin"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="80dp"
         android:text="@string/sign_up" />
 
     <TextView
@@ -31,7 +40,7 @@
         android:layout_marginTop="15dp"
         android:layout_marginEnd="15dp"
         android:layout_marginBottom="-60dp"
-        android:textSize="30sp"
-        android:text="HELLO" />
+        android:text="HELLO"
+        android:textSize="30sp" />
 
 </RelativeLayout>

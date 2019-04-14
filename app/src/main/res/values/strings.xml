@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">UnipiSmartAlert</string>
     <string name="sign_up">Sing up</string>
-
+    <string name="login">Login</string>
+    <string name="title_activity_sing_up">SingUpActivity</string>
+    <string name="username">USERNAME</string>
+    <string name="register">REGISTER</string>
 </resources>
