@@ -28,7 +28,7 @@ public class SingUpActivity extends AppCompatActivity {
         Button buttonRegister = findViewById(R.id.buttonRegister);
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("users");
+        myRef = database.getReference(LoginActivity.USERS);
 
         final HashMap<String, Characteristics> usersMap = new HashMap<>();
 
@@ -51,6 +51,8 @@ public class SingUpActivity extends AppCompatActivity {
                                 Characteristics characteristics = new Characteristics();
                                 usersMap.put(user.getUsername(), characteristics);
                                 myRef.setValue(usersMap);
+
+                                //TODO call back to Main Activity
                             }
                         }
                     }
