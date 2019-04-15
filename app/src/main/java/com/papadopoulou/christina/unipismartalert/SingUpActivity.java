@@ -1,5 +1,6 @@
 package com.papadopoulou.christina.unipismartalert;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -53,6 +54,8 @@ public class SingUpActivity extends AppCompatActivity {
                                 myRef.setValue(usersMap);
 
                                 //TODO call back to Main Activity
+                                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                                startActivityForResult(intent, 200);
                             }
                         }
                     }
