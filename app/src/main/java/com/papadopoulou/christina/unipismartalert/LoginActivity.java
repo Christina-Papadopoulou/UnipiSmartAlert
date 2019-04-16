@@ -70,17 +70,19 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(),SingUpActivity.class);
-                startActivityForResult(intent,200);
+                startActivityForResult(intent, 200);
             }
         });
+
+        Log.e("JIM", "MAIN ON CREAT");
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        if(requestCode == 200){
-            Log.e("JIM", "Done " + requestCode);
+        Log.e("JIM", "onActivityRes");
+        if(resultCode == RESULT_OK){
+            //TODO start User Activity
         }
     }
 }
