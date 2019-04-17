@@ -41,7 +41,9 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View v) {
                 final String currentLoginUsername = editTextName.getText().toString().toLowerCase().trim();
 
-                myRef.addValueEventListener(new ValueEventListener() {
+                if(currentLoginUsername.equals("")){ return; }
+
+                myRef.addValueEventListener(new ValueEventListener() {// PIthanoata signle value listenre
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
@@ -49,8 +51,12 @@ public class LoginActivity extends AppCompatActivity {
                             String dataBaseUser = currentDataSnapshot.getKey();
 
                             if (dataBaseUser.equals(currentLoginUsername)) {
-                                Toast.makeText(getApplicationContext(), "OK", Toast.LENGTH_SHORT).show();
-                                // TODO Start User Activity
+                                Toast.makeText(getApplicationContext(), "Login Success", Toast.LENGTH_SHORT).show();
+
+                                Intent intent = new Intent(getApplicationContext(), UserActivity.class);
+                                intent.putExtra("username", currentLoginUsername);
+                                startActivity(intent);
+
                                 return;
                             } else {
                                 Toast.makeText(getApplicationContext(), "The user does not exists. Please Sing Up", Toast.LENGTH_SHORT).show();
@@ -73,16 +79,15 @@ public class LoginActivity extends AppCompatActivity {
                 startActivityForResult(intent, 200);
             }
         });
-
-        Log.e("JIM", "MAIN ON CREAT");
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.e("JIM", "onActivityRes");
-        if(resultCode == RESULT_OK){
+
+        if(resultCode == 200){
             //TODO start User Activity
+            Log.e("JIM", "onActivityRes");
         }
     }
 }

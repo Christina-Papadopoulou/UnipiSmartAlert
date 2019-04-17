@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,7 +16,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class SingUpActivity extends AppCompatActivity {
     private DatabaseReference myRef;
@@ -55,7 +53,7 @@ public class SingUpActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String currenUserName = editTextUsername.getText().toString().trim().toLowerCase();
 
-                // TODO show message if the editext is empty
+                if(currenUserName.equals("")){ return; }
 
                 for (String user: dataBaseUsers) {
                     if(user.equals(currenUserName)){
@@ -67,8 +65,7 @@ public class SingUpActivity extends AppCompatActivity {
 
                         Toast.makeText(getApplicationContext(), "The user created successful !!!", Toast.LENGTH_SHORT).show();
 
-                        Intent intent = new Intent(getApplication(), LoginActivity.class); // In case you want to pass data to main activity just set putExtra
-                        setResult(RESULT_OK);
+                        setResult(200);
                         finish();
                     }
                 }

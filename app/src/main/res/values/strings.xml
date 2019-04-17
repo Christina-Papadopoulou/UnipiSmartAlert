@@ -5,4 +5,6 @@
     <string name="title_activity_sing_up">SingUpActivity</string>
     <string name="username">USERNAME</string>
     <string name="register">REGISTER</string>
+    <string name="sos">SOS</string>
+    <string name="abort">ABORT</string>
 </resources>
