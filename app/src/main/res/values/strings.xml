@@ -7,4 +7,10 @@
     <string name="register">REGISTER</string>
     <string name="sos">SOS</string>
     <string name="abort">ABORT</string>
+    <string name="preference_file_key">stored_numbers</string>
+
+    <string name="sos_msg">Βρίσκομαι στην τοπθεσία με </string>
+    <string name="lat">γεωργραφικό πλάτος</string>
+    <string name="lon"> και γεωργραφικό μηκός> </string>
+    <string name="end_sos_msg">Χρειάζομαι βοήθεια</string>
 </resources>

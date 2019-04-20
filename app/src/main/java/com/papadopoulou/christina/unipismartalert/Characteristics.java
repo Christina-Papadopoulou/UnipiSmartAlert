@@ -5,15 +5,15 @@ import java.util.Date;
 public class Characteristics {
     private double lat;
     private double longt;
-    private Date date;
+    private boolean alarmAbort;
 
     public Characteristics() {
     }
 
-    public Characteristics(double lat, double longt, Date date) {
+    public Characteristics(double lat, double longt, boolean alarmAbort) {
         this.lat = lat;
         this.longt = longt;
-        this.date = date;
+        this.alarmAbort = alarmAbort;
     }
 
     public double getLat() {
@@ -32,11 +32,11 @@ public class Characteristics {
         this.longt = longt;
     }
 
-    public Date getDate() {
-        return date;
+    public boolean isAlarmAbort() {
+        return alarmAbort;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setAlarmAbort(boolean alarmAbort) {
+        this.alarmAbort = alarmAbort;
     }
 }

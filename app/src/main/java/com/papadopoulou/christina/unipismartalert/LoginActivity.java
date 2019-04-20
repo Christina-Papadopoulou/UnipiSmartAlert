@@ -17,6 +17,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -36,6 +38,23 @@ public class LoginActivity extends AppCompatActivity {
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference(USERS);
 
+        final ArrayList<String> dataBaseLoginUsers = new ArrayList<>();
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {// PIthanoata signle value listenre
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
+                    String dataBaseUser = currentDataSnapshot.getKey();
+                    dataBaseLoginUsers.add(dataBaseUser);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
         buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -43,32 +62,19 @@ public class LoginActivity extends AppCompatActivity {
 
                 if(currentLoginUsername.equals("")){ return; }
 
-                myRef.addValueEventListener(new ValueEventListener() {// PIthanoata signle value listenre
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
+                for (String loginUser: dataBaseLoginUsers) {
+                    if (loginUser.equals(currentLoginUsername)) {
+                        Toast.makeText(getApplicationContext(), "Login Success", Toast.LENGTH_SHORT).show();
 
-                            String dataBaseUser = currentDataSnapshot.getKey();
+                        Intent intent = new Intent(getApplicationContext(), UserActivity.class);
+                        intent.putExtra("username", currentLoginUsername);
+                        startActivity(intent);
 
-                            if (dataBaseUser.equals(currentLoginUsername)) {
-                                Toast.makeText(getApplicationContext(), "Login Success", Toast.LENGTH_SHORT).show();
-
-                                Intent intent = new Intent(getApplicationContext(), UserActivity.class);
-                                intent.putExtra("username", currentLoginUsername);
-                                startActivity(intent);
-
-                                return;
-                            } else {
-                                Toast.makeText(getApplicationContext(), "The user does not exists. Please Sing Up", Toast.LENGTH_SHORT).show();
-                            }
-                        }
+                        break;
+                    } else {
+                        Toast.makeText(getApplicationContext(), "The user does not exists. Please Sing Up", Toast.LENGTH_SHORT).show();
                     }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
+                }
             }
         });
 

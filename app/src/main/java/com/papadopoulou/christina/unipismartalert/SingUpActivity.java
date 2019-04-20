@@ -1,6 +1,5 @@
 package com.papadopoulou.christina.unipismartalert;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +16,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
+import static com.papadopoulou.christina.unipismartalert.LoginActivity.USERS;
+
 public class SingUpActivity extends AppCompatActivity {
     private DatabaseReference myRef;
 
@@ -29,7 +30,7 @@ public class SingUpActivity extends AppCompatActivity {
         Button buttonRegister = findViewById(R.id.buttonRegister);
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        myRef = database.getReference(LoginActivity.USERS);
+        myRef = database.getReference(USERS);
 
         final ArrayList<String> dataBaseUsers = new ArrayList<>();
 
