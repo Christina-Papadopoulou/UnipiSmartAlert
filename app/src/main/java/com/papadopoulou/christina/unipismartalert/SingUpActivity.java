@@ -20,6 +20,7 @@ import static com.papadopoulou.christina.unipismartalert.LoginActivity.USERS;
 
 public class SingUpActivity extends AppCompatActivity {
     private DatabaseReference myRef;
+    private ValueEventListener valueEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +35,7 @@ public class SingUpActivity extends AppCompatActivity {
 
         final ArrayList<String> dataBaseUsers = new ArrayList<>();
 
-        myRef.addValueEventListener(new ValueEventListener() {
+        valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
@@ -47,30 +48,38 @@ public class SingUpActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
-        });
+        };
+        myRef.addValueEventListener(valueEventListener);
 
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String currenUserName = editTextUsername.getText().toString().trim().toLowerCase();
-
+                boolean userExist = false;
                 if(currenUserName.equals("")){ return; }
 
                 for (String user: dataBaseUsers) {
                     if(user.equals(currenUserName)){
-                        Toast.makeText(getApplicationContext(), "The user exists. Enter another username", Toast.LENGTH_SHORT).show();
-                    }else{
-                        User newUser = new User(editTextUsername.getText().toString().trim().toLowerCase());
-                        Characteristics characteristics = new Characteristics();
-                        myRef.child(newUser.getUsername()).setValue(characteristics);
-
-                        Toast.makeText(getApplicationContext(), "The user created successful !!!", Toast.LENGTH_SHORT).show();
-
-                        setResult(200);
-                        finish();
+                        userExist = true;
                     }
+                }
+
+                if(!userExist) {
+                    User newUser = new User(editTextUsername.getText().toString().trim().toLowerCase());
+                    myRef.child(newUser.getUsername()).setValue("");
+
+                    Toast.makeText(getApplicationContext(), "The user created successful !!!", Toast.LENGTH_SHORT).show();
+                    finish();
+                }else{
+                    Toast.makeText(getApplicationContext(), "The user exists. Enter another username", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        myRef.removeEventListener(valueEventListener);
     }
 }

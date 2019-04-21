@@ -1,8 +1,12 @@
 package com.papadopoulou.christina.unipismartalert;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -11,9 +15,12 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -23,10 +30,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.Date;
+import java.util.HashMap;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.SEND_SMS;
@@ -59,9 +71,13 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
     private SmsManager smsManager;
 
     // Public vars
-    private Characteristics currentSituation;
+    private Characteristics currentFallingSituation, currentQuakeSituation;
     private String currentDate;
     private String userName;
+    private boolean isEarthQuakeDetection;
+    private SharedPreferences sharedPref;
+
+    BroadcastReceiver broadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +89,7 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
         Button buttonAbort = findViewById(R.id.buttonAbort);
 
         // Init Shared Preferences
-        final SharedPreferences sharedPref = getApplicationContext()
+        sharedPref = getApplicationContext()
                 .getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         writeToSharedPref(sharedPref);
 
@@ -83,9 +99,18 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
         // Init Timer
         countDownTimer = initCountDownTimer(5000, textViewTimer);
 
-        userName = (String) getIntent().getExtras().get("username");
+        // Register a receiver
+        broadcastReceiver  = new MyReceiver();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_POWER_CONNECTED);
+        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        this.registerReceiver(broadcastReceiver, filter);
+
+        userName = getIntent().getStringExtra("username");
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference(USERS);
+
+        isEarthQuakeDetection = getIntent().getBooleanExtra("readyEarthquake", false);
 
         // Check Premission
         if (checkPermission()) {
@@ -108,11 +133,38 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
                 }
                 countDownTimer.cancel();
                 isTimerEnabled = false;
-                currentSituation.setAlarmAbort(true);
+                currentFallingSituation.setAlarmAbort(true);
                 myRef.child(userName)
                         .child("falls")
                         .child(currentDate)
-                        .setValue(currentSituation);
+                        .setValue(currentFallingSituation);
+            }
+        });
+
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
+                    String dataBaseUser = currentDataSnapshot.getKey();
+
+                    for (DataSnapshot snap : currentDataSnapshot.child("quakes").getChildren()) {
+                        String quakeKey = snap.getKey();
+
+                        Characteristics characteristics
+                                = dataSnapshot.child(dataBaseUser)
+                                .child("quakes")
+                                .child(quakeKey)
+                                .getValue(Characteristics.class);
+
+                        Log.e("JIM", "USer " + dataBaseUser + " Date  " + quakeKey + "   " + String.valueOf(characteristics.isQuakeDetection()));
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
             }
         });
     }
@@ -124,18 +176,40 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(broadcastReceiver);
+    }
+
+
+    @SuppressLint("MissingPermission")
+    @Override
     public void onSensorChanged(SensorEvent event) {
+        isEarthQuakeDetection = sharedPref.getBoolean("readyEarthquake",false);
+
+        int x = Math.round(event.values[0]);
+        int y = Math.round(event.values[1]);
         int z = Math.round(event.values[2]);
 
-        if (z == 0 & !isTimerEnabled) {
+        //Log.e("JIM"," "  + x  + " " + y + " "+ z);
+
+        if(isEarthQuakeDetection){
+            if(x > 2 || y > 2 || z != 10){
+//                myRef.child(userName)
+//                        .child("quakes")
+//                        .child(String.valueOf(new Date()))
+//                        .setValue(new Characteristics(true));
+            }
+
+        } else if (z == 0 & !isTimerEnabled) {
             isTimerEnabled = true;
             countDownTimer.start();
-            currentSituation = new Characteristics(4521, 4564564, false);
+            currentFallingSituation = new Characteristics(4521, 4564564, false);
             currentDate = String.valueOf(new Date());
             myRef.child(userName)
                     .child("falls")
                     .child(currentDate)
-                    .setValue(currentSituation);
+                    .setValue(currentFallingSituation);
         }
     }
 

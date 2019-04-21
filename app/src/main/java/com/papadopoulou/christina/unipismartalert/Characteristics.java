@@ -6,14 +6,19 @@ public class Characteristics {
     private double lat;
     private double longt;
     private boolean alarmAbort;
+    private boolean quakeDetection;
 
     public Characteristics() {
     }
 
-    public Characteristics(double lat, double longt, boolean alarmAbort) {
+    Characteristics(double lat, double longt, boolean alarmAbort) {
         this.lat = lat;
         this.longt = longt;
         this.alarmAbort = alarmAbort;
+    }
+
+    Characteristics(boolean quakeDetection) {
+        this.quakeDetection = quakeDetection;
     }
 
     public double getLat() {
@@ -38,5 +43,13 @@ public class Characteristics {
 
     public void setAlarmAbort(boolean alarmAbort) {
         this.alarmAbort = alarmAbort;
+    }
+
+    public boolean isQuakeDetection() {
+        return quakeDetection;
+    }
+
+    public void setQuakeDetection(boolean quakeDetection) {
+        this.quakeDetection = quakeDetection;
     }
 }
