@@ -13,6 +13,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
@@ -29,6 +31,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -37,6 +40,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -44,7 +48,7 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.SEND_SMS;
 import static com.papadopoulou.christina.unipismartalert.LoginActivity.USERS;
 
-public class UserActivity extends AppCompatActivity implements SensorEventListener {
+public class UserActivity extends AppCompatActivity implements SensorEventListener, LocationListener {
     // FireBase
     protected FirebaseDatabase database;
     public DatabaseReference myRef;
@@ -71,13 +75,15 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
     private SmsManager smsManager;
 
     // Public vars
-    private Characteristics currentFallingSituation, currentQuakeSituation;
+    private Characteristics currentFallingSituation;
     private String currentDate;
     private String userName;
     private boolean isEarthQuakeDetection;
     private SharedPreferences sharedPref;
-
-    BroadcastReceiver broadcastReceiver;
+    private ArrayList<String> earthQuakeDates = new ArrayList<>();
+    private int count = 0;
+    private String strLat, strLong;
+    private BroadcastReceiver broadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +93,7 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
         // Init views
         TextView textViewTimer = findViewById(R.id.textViewTimer);
         Button buttonAbort = findViewById(R.id.buttonAbort);
+        Button buttonSos = findViewById(R.id.buttonSos);
 
         // Init Shared Preferences
         sharedPref = getApplicationContext()
@@ -106,6 +113,11 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
         filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         this.registerReceiver(broadcastReceiver, filter);
 
+        //Init Sensor
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
         userName = getIntent().getStringExtra("username");
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference(USERS);
@@ -116,13 +128,12 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
         if (checkPermission()) {
             // Start Listen GPS
             smsManager = SmsManager.getDefault();
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
         } else {
             // Request premission
             requestPermission();
         }
 
-        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
         buttonAbort.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -144,20 +155,24 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (isEarthQuakeDetection) {
+                    for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
+                        String currentDate = currentDataSnapshot.child("quakes").getValue(String.class);
+                        earthQuakeDates.add(currentDate);
+                        Log.e("JIM", "USer " + currentDate);
+                    }
 
-                for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
-                    String dataBaseUser = currentDataSnapshot.getKey();
-
-                    for (DataSnapshot snap : currentDataSnapshot.child("quakes").getChildren()) {
-                        String quakeKey = snap.getKey();
-
-                        Characteristics characteristics
-                                = dataSnapshot.child(dataBaseUser)
-                                .child("quakes")
-                                .child(quakeKey)
-                                .getValue(Characteristics.class);
-
-                        Log.e("JIM", "USer " + dataBaseUser + " Date  " + quakeKey + "   " + String.valueOf(characteristics.isQuakeDetection()));
+                    for (int i = 0; i < earthQuakeDates.size(); i++) {
+                        String firstValue = earthQuakeDates.get(i);
+                        for (int j = 1; j < earthQuakeDates.size(); j++) {
+                            if (earthQuakeDates.get(j) == firstValue) {
+                                count += 1;
+                            }
+                        }
+                        //Realistika i xristes tha prepei na einai pano apo 50
+                        if (count >= 2) {
+                            Toast.makeText(getApplicationContext(), "Egine seismos", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
             }
@@ -167,6 +182,14 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
 
             }
         });
+
+        buttonSos.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sensSms();
+            }
+        });
+
     }
 
     @Override
@@ -181,7 +204,9 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
         unregisterReceiver(broadcastReceiver);
     }
 
-
+    //==============================================================================================
+    // ACCELEROMETER LISTENER
+    //==============================================================================================
     @SuppressLint("MissingPermission")
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -195,10 +220,9 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
 
         if(isEarthQuakeDetection){
             if(x > 2 || y > 2 || z != 10){
-//                myRef.child(userName)
-//                        .child("quakes")
-//                        .child(String.valueOf(new Date()))
-//                        .setValue(new Characteristics(true));
+                myRef.child(userName)
+                        .child("quakes")
+                        .setValue(String.valueOf(new Date()));
             }
 
         } else if (z == 0 & !isTimerEnabled) {
@@ -218,6 +242,35 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
+    //==============================================================================================
+    // GPS LISTENER
+    //==============================================================================================
+    @Override
+    public void onLocationChanged(Location location) {
+        strLat = Location.convert(location.getLatitude(), Location.FORMAT_DEGREES);
+        strLong = Location.convert(location.getLongitude(), Location.FORMAT_DEGREES);
+
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+
+    //==============================================================================================
+    // PUBLIC FUNCTIONS
+    //==============================================================================================
+    @SuppressLint("MissingPermission")
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -227,6 +280,7 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
                     grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                 // NICE PREMISSION GRADED
                 smsManager = SmsManager.getDefault();
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
                 Log.e("JIM", "" + requestCode + "  " + grantResults[0] + "  " + grantResults[1]);
             } else {
                 showAlertDialog();
@@ -291,19 +345,24 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onFinish() {
                 if (isTimerEnabled) {
-                    String mobile = getApplicationContext()
-                            .getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE)
-                            .getString("mobile1", "no");
-
-                    // PRoblem me to message
-                    smsManager.sendTextMessage(mobile, null,
-                            getString(R.string.sos_msg) +
-                                    getString(R.string.lat) + "11111" +
-                                    getString(R.string.lon) + "0000" +
-                                    getString(R.string.end_sos_msg), null, null);
+                    sensSms();
                 }
                 isTimerEnabled = false;
             }
         };
     }
+
+    private void sensSms() {
+        String mobile = getApplicationContext()
+                .getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE)
+                .getString("mobile1", "no");
+
+        // PRoblem me to message
+        smsManager.sendTextMessage(mobile, null,
+                getString(R.string.sos_msg) +
+                        getString(R.string.lat) + strLat +
+                        getString(R.string.lon) + strLong +
+                        getString(R.string.end_sos_msg), null, null);
+    }
+
 }
