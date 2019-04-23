@@ -13,4 +13,8 @@
     <string name="lat">γεωργραφικό πλάτος</string>
     <string name="lon"> και γεωργραφικό μηκός> </string>
     <string name="end_sos_msg">Χρειάζομαι βοήθεια</string>
+    <string name="login_succes">Login Success</string>
+    <string name="login_error">The user does not exists. Please Sing Up</string>
+    <string name="register_success">The user created successful !!!</string>
+    <string name="register_error">The user exists. Enter another username</string>
 </resources>

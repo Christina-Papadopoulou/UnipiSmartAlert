@@ -220,16 +220,18 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
 
         if(isEarthQuakeDetection){
             if(x > 2 || y > 2 || z != 10){
-                myRef.child(userName)
-                        .child("quakes")
-                        .setValue(String.valueOf(new Date()));
+//                myRef.child(userName)
+//                        .child("quakes")
+//                        .setValue(String.valueOf(new Date()));
             }
 
         } else if (z == 0 & !isTimerEnabled) {
             isTimerEnabled = true;
             countDownTimer.start();
-            currentFallingSituation = new Characteristics(4521, 4564564, false);
+            currentFallingSituation = new Characteristics(strLat, strLong, false);
             currentDate = String.valueOf(new Date());
+            // Add a branch on currentDate in firebase
+            // Example jim -> falls-> Date -> Characteristics
             myRef.child(userName)
                     .child("falls")
                     .child(currentDate)

@@ -68,10 +68,10 @@ public class SingUpActivity extends AppCompatActivity {
                     User newUser = new User(editTextUsername.getText().toString().trim().toLowerCase());
                     myRef.child(newUser.getUsername()).setValue("");
 
-                    Toast.makeText(getApplicationContext(), "The user created successful !!!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.register_success), Toast.LENGTH_SHORT).show();
                     finish();
                 }else{
-                    Toast.makeText(getApplicationContext(), "The user exists. Enter another username", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.register_error), Toast.LENGTH_SHORT).show();
                 }
             }
         });

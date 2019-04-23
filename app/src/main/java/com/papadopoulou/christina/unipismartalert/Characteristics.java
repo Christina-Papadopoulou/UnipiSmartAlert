@@ -8,7 +8,7 @@ public class Characteristics {
     private boolean alarmAbort;
     private boolean quakeDetection;
 
-    public Characteristics() {
+    public Characteristics(String strLat, String strLong, boolean alarmAbort) {
     }
 
     Characteristics(double lat, double longt, boolean alarmAbort) {

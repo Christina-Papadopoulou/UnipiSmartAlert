@@ -44,10 +44,12 @@ public class LoginActivity extends AppCompatActivity {
 
         final ArrayList<String> dataBaseLoginUsers = new ArrayList<>();
 
+        //Read database for the users
         valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
+                    //Add the users name in array list
                     String dataBaseUser = currentDataSnapshot.getKey();
                     dataBaseLoginUsers.add(dataBaseUser);
                 }
@@ -59,10 +61,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         };
 
-        myRef.addValueEventListener(valueEventListener);
-
-
-
         buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -71,6 +69,10 @@ public class LoginActivity extends AppCompatActivity {
 
                 if(currentLoginUsername.equals("")){ return; }
 
+                // Read database
+                myRef.addValueEventListener(valueEventListener);
+
+                // Check if user exists
                 for (String loginUser: dataBaseLoginUsers) {
                     if (loginUser.equals(currentLoginUsername)) {
                         userExist = true;
@@ -79,12 +81,13 @@ public class LoginActivity extends AppCompatActivity {
                 }
 
                 if(userExist){
+                    // Start User Activity
                     Intent intent = new Intent(getApplicationContext(), UserActivity.class);
                     intent.putExtra("username", currentLoginUsername);
                     startActivity(intent);
-                    Toast.makeText(getApplicationContext(), "Login Success", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.login_succes), Toast.LENGTH_SHORT).show();
                 }else{
-                    Toast.makeText(getApplicationContext(), "The user does not exists. Please Sing Up", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.login_error), Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -92,6 +95,7 @@ public class LoginActivity extends AppCompatActivity {
         buttonSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //Start sign up Activity
                 Intent intent = new Intent(getApplicationContext(),SingUpActivity.class);
                 startActivity(intent);
             }
@@ -101,6 +105,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        // Remove listener because when i change my database the event listener called in All Activity
         myRef.removeEventListener(valueEventListener);
     }
 }
