@@ -76,7 +76,7 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
 
     // Public vars
     private Characteristics currentFallingSituation;
-    private String currentDate;
+    private String currentDate = String.valueOf(new Date());
     private String userName;
     private boolean isEarthQuakeDetection;
     private SharedPreferences sharedPref;
@@ -107,7 +107,7 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
         countDownTimer = initCountDownTimer(5000, textViewTimer);
 
         // Register a receiver
-        broadcastReceiver  = new MyReceiver();
+        broadcastReceiver = new MyReceiver();
         IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         filter.addAction(Intent.ACTION_POWER_CONNECTED);
         filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
@@ -155,24 +155,19 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if(currentDate == null){return;}
                 if (isEarthQuakeDetection) {
                     for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
-                        String currentDate = currentDataSnapshot.child("quakes").getValue(String.class);
-                        earthQuakeDates.add(currentDate);
-                        Log.e("JIM", "USer " + currentDate);
+                        DataSnapshot snapshot = currentDataSnapshot;
+                        String quakeDate = snapshot.child("quakes").child(currentDate).getKey();
+
+                        if(quakeDate.equals(currentDate)){
+                            count++;
+                        }
                     }
 
-                    for (int i = 0; i < earthQuakeDates.size(); i++) {
-                        String firstValue = earthQuakeDates.get(i);
-                        for (int j = 1; j < earthQuakeDates.size(); j++) {
-                            if (earthQuakeDates.get(j) == firstValue) {
-                                count += 1;
-                            }
-                        }
-                        //Realistika i xristes tha prepei na einai pano apo 50
-                        if (count >= 2) {
-                            Toast.makeText(getApplicationContext(), "Egine seismos", Toast.LENGTH_SHORT).show();
-                        }
+                    if(count > 5){
+                        Log.e("JIM", "Sismos ");
                     }
                 }
             }
@@ -207,22 +202,37 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
     //==============================================================================================
     // ACCELEROMETER LISTENER
     //==============================================================================================
+    long pastTime = 0;
+
     @SuppressLint("MissingPermission")
     @Override
     public void onSensorChanged(SensorEvent event) {
-        isEarthQuakeDetection = sharedPref.getBoolean("readyEarthquake",false);
+        isEarthQuakeDetection = sharedPref.getBoolean("readyEarthquake", false);
 
-        int x = Math.round(event.values[0]);
-        int y = Math.round(event.values[1]);
-        int z = Math.round(event.values[2]);
+        float x = event.values[0];
+        float y = event.values[1];
+        float z = event.values[2];
 
         //Log.e("JIM"," "  + x  + " " + y + " "+ z);
+        long currentTime = System.currentTimeMillis();
 
-        if(isEarthQuakeDetection){
-            if(x > 2 || y > 2 || z != 10){
-//                myRef.child(userName)
-//                        .child("quakes")
-//                        .setValue(String.valueOf(new Date()));
+        if (isEarthQuakeDetection) {
+
+            if (currentTime - pastTime > 1000) {
+                pastTime = System.currentTimeMillis();
+
+                if (x >= 2 || x < 0 || y > 1 || y < -1) {
+                    currentDate = String.valueOf(new Date());
+                    myRef.child(userName)
+                            .child("quakes")
+                            .child(currentDate)
+                            .setValue(true);
+
+                    //Log.e("JIM", "quake");
+                }
+
+               //Log.e("JIM", " " + x + " " + y + " " + z);
+
             }
 
         } else if (z == 0 & !isTimerEnabled) {
