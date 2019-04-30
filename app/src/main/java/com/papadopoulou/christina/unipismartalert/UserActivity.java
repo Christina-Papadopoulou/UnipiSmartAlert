@@ -81,7 +81,7 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
     private boolean isEarthQuakeDetection;
     private SharedPreferences sharedPref;
     private ArrayList<String> earthQuakeDates = new ArrayList<>();
-    private int count = 0;
+    private int count = 0, countSos = 0, countAbort = 0;
     private String strLat, strLong;
     private BroadcastReceiver broadcastReceiver;
 
@@ -94,6 +94,7 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
         TextView textViewTimer = findViewById(R.id.textViewTimer);
         Button buttonAbort = findViewById(R.id.buttonAbort);
         Button buttonSos = findViewById(R.id.buttonSos);
+        Button buttonStatistics = findViewById(R.id.buttonStatistics);
 
         // Init Shared Preferences
         sharedPref = getApplicationContext()
@@ -105,13 +106,6 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
 
         // Init Timer
         countDownTimer = initCountDownTimer(5000, textViewTimer);
-
-        // Register a receiver
-        broadcastReceiver = new MyReceiver();
-        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        filter.addAction(Intent.ACTION_POWER_CONNECTED);
-        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
-        this.registerReceiver(broadcastReceiver, filter);
 
         //Init Sensor
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -149,31 +143,8 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
                         .child("falls")
                         .child(currentDate)
                         .setValue(currentFallingSituation);
-            }
-        });
-
-        myRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if(currentDate == null){return;}
-                if (isEarthQuakeDetection) {
-                    for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
-                        DataSnapshot snapshot = currentDataSnapshot;
-                        String quakeDate = snapshot.child("quakes").child(currentDate).getKey();
-
-                        if(quakeDate.equals(currentDate)){
-                            count++;
-                        }
-                    }
-
-                    if(count > 5){
-                        Log.e("JIM", "Sismos ");
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+                countAbort++;
+                myRef.child(userName).child("countabort").setValue(countAbort);
 
             }
         });
@@ -181,23 +152,80 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
         buttonSos.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sensSms();
+                //sensSms();
+                countSos++;
+                myRef.child(userName).child("countsos").setValue(countSos);
             }
         });
 
+        buttonStatistics.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), StatisticsActivity.class);
+                intent.putExtra("username", userName);
+                startActivity(intent);
+            }
+        });
+
+        myRef.addValueEventListener(valueEventListener);
     }
+
+    ValueEventListener valueEventListener = new ValueEventListener() {
+        @Override
+        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+            if(currentDate == null){return;}
+            if (isEarthQuakeDetection) {
+                for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
+                    String quakeDate = currentDataSnapshot.child("quakes").child(currentDate).getKey();
+
+                    if(quakeDate.equals(currentDate)){
+                        count++;
+                    }
+                }
+
+                if(count > 5){
+                    Log.e("JIM", "Sismos ");
+                }
+            }
+
+            countSos   = dataSnapshot.child(userName).child("countsos").getValue(Integer.class);
+            //countAbort = dataSnapshot.child(userName).child("countabort").getValue(Integer.class);
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+        }
+    };
+
 
     @Override
     protected void onResume() {
         super.onResume();
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+
+        // Register a receiver
+        broadcastReceiver = new MyReceiver();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_POWER_CONNECTED);
+        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        this.registerReceiver(broadcastReceiver, filter);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Remove listener because when i change my database the event listener called in All Activity
+        myRef.removeEventListener(valueEventListener);
+        if(broadcastReceiver == null) return;
         unregisterReceiver(broadcastReceiver);
     }
+
 
     //==============================================================================================
     // ACCELEROMETER LISTENER

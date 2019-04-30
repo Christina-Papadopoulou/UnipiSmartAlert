@@ -28,7 +28,8 @@ public class LoginActivity extends AppCompatActivity {
     public static final String USERS = "users";
     protected FirebaseDatabase database;
     public DatabaseReference myRef;
-    private ValueEventListener valueEventListener;
+    final ArrayList<String> dataBaseLoginUsers = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,24 +43,8 @@ public class LoginActivity extends AppCompatActivity {
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference(USERS);
 
-        final ArrayList<String> dataBaseLoginUsers = new ArrayList<>();
-
-        //Read database for the users
-        valueEventListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
-                    //Add the users name in array list
-                    String dataBaseUser = currentDataSnapshot.getKey();
-                    dataBaseLoginUsers.add(dataBaseUser);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        };
+        // Read database
+        myRef.addValueEventListener(valueEventListener);
 
         buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -69,8 +54,6 @@ public class LoginActivity extends AppCompatActivity {
 
                 if(currentLoginUsername.equals("")){ return; }
 
-                // Read database
-                myRef.addValueEventListener(valueEventListener);
 
                 // Check if user exists
                 for (String loginUser: dataBaseLoginUsers) {
@@ -108,4 +91,20 @@ public class LoginActivity extends AppCompatActivity {
         // Remove listener because when i change my database the event listener called in All Activity
         myRef.removeEventListener(valueEventListener);
     }
+
+    ValueEventListener valueEventListener =  new ValueEventListener() {
+        @Override
+        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+            for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
+                //Add the users name in array list
+                String dataBaseUser = currentDataSnapshot.getKey();
+                dataBaseLoginUsers.add(dataBaseUser);
+            }
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+        }
+    };
 }

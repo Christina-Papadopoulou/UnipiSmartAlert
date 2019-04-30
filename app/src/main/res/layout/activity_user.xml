@@ -35,4 +35,14 @@
         android:text="@string/abort"
         android:textSize="30sp" />
 
+    <Button
+        android:id="@+id/buttonStatistics"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="50dp"
+        android:text="@string/statistics"
+        android:textSize="30sp" />
+
+
 </LinearLayout>
