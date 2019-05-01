@@ -14,7 +14,7 @@
         android:layout_gravity="center"
         android:layout_marginTop="40sp"
         android:gravity="center"
-        android:text="1"
+        android:text="@string/initcount"
         android:textSize="20sp" />
 
     <Button

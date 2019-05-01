@@ -16,7 +16,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".StatisticsActivity"></activity>
         <activity android:name=".UserActivity" />
         <activity android:name=".SingUpActivity" />
         <activity android:name=".LoginActivity">
