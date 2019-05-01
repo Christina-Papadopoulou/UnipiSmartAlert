@@ -12,7 +12,7 @@
         android:layout_alignBottom="@+id/buttonLogin"
         android:layout_centerInParent="true"
         android:layout_marginBottom="80dp"
-        android:text="jim"/>
+        android:text="jim" />
 
     <Button
         android:id="@+id/buttonLogin"
@@ -30,5 +30,29 @@
         android:layout_marginTop="80dp"
         android:text="@string/sign_up" />
 
+    <LinearLayout
+        android:id="@+id/languageLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="EN"
+            android:textSize="30sp" />
+
+        <Switch
+            android:id="@+id/switchLanguage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/languageLayout" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GR"
+            android:textSize="30sp" />
+
+    </LinearLayout>
 </RelativeLayout>

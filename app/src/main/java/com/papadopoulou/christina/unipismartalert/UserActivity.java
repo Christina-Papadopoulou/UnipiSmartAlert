@@ -74,7 +74,7 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
     private MyTts tts;
 
     // Public vars
-    private Characteristics currentFallingSituation;
+    private Characteristics currentFallingSituation, tempCharacteristics;
     private String currentDate = String.valueOf(new Date());
     private String userName;
     private boolean isChargedOn;
@@ -132,7 +132,6 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
             requestPermission();
         }
 
-
         buttonAbort.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -140,16 +139,16 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
                 if (countDownTimer == null) {
                     return;
                 }
+
                 countDownTimer.cancel();
                 isTimerEnabled = false;
-                currentFallingSituation.setAlarmAbort(true);
+                currentFallingSituation.setFallAborted(true);
                 myRef.child(userName)
                         .child("falls")
                         .child(currentDate)
                         .setValue(currentFallingSituation);
-                countAbort++;
-                myRef.child(userName).child("countabort").setValue(countAbort);
 
+                countAbort++;
             }
         });
 
@@ -157,8 +156,9 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
         buttonSos.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //sensSms();
                 tts.speak("I need Help");
+                sendSms();
+
                 countSos++;
                 Toast.makeText(getApplicationContext(),
                         getString(R.string.sos_msg) +
@@ -209,27 +209,37 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
     ValueEventListener valueEventListener = new ValueEventListener() {
         @Override
         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-            if(currentDate == null){return;}
-            if (isChargedOn) {
-                for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
-                    String quakeDate = currentDataSnapshot.child("quakes").child(currentDate).getKey();
 
-                    if(quakeDate.equals(currentDate)){
-                        count++;
+            if (currentDate == null) {
+                return;
+            }
+            if (isChargedOn) {
+                tempCharacteristics = dataSnapshot.child(userName).getValue(Characteristics.class);
+                if (currentDate == null) {
+                    return;
+                }
+
+                if (isChargedOn) {
+                    for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
+                        String quakeDate = currentDataSnapshot.child("quakes").child(currentDate).getKey();
+
+                        if (quakeDate.equals(currentDate)) {
+                            count++;
+                        }
+                    }
+
+                    if (count > 5) {
+                        Log.e("JIM", "Sismos ");
                     }
                 }
 
-                if(count > 5){
-                    Log.e("JIM", "Sismos ");
-                }
+                countSos = tempCharacteristics.getCountSos();
+                countAbort = tempCharacteristics.getCountAlarmAbort();
             }
 
-            countSos = dataSnapshot.child(userName).child("countsos").getValue(Integer.class);
-            countAbort = dataSnapshot.child(userName).child("countabort").getValue(Integer.class);
         }
-
         @Override
-        public void onCancelled(@NonNull DatabaseError databaseError) {
+        public void onCancelled (@NonNull DatabaseError databaseError) {
 
         }
     };
@@ -244,9 +254,9 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
     public void onSensorChanged(SensorEvent event) {
         isChargedOn = sharedPref.getBoolean("readyEarthquake", false);
 
-        float x = event.values[0];
-        float y = event.values[1];
-        float z = event.values[2];
+        int x = Math.round(event.values[0]);
+        int y = Math.round(event.values[1]);
+        int z = Math.round(event.values[2]);
 
         long currentTime = System.currentTimeMillis();
 
@@ -264,15 +274,14 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
 
                     Log.e("JIM", "quake");
                 }
-
-               //Log.e("JIM", " " + x + " " + y + " " + z);
+//               Log.e("JIM", " " + x + " " + y + " " + z);
 
             }
         // If z == 0 and timer is not running we have fall
         } else if (z == 0 & !isTimerEnabled) {
             isTimerEnabled = true;
             countDownTimer.start();
-            currentFallingSituation = new Characteristics(strLat, strLong, false);
+            currentFallingSituation = new Characteristics(Double.parseDouble(strLat), Double.parseDouble(strLong), true);
             currentDate = String.valueOf(new Date());
             // Add a branch on currentDate in firebase
             // Example jim -> falls-> Date -> Characteristics
@@ -281,6 +290,8 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
                     .child(currentDate)
                     .setValue(currentFallingSituation);
         }
+
+//        Log.e("JIM", " " + x + " " + y + " " + z);
     }
 
     @Override
@@ -356,8 +367,9 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
     private void showAlertDialog() {
         // Create Builder
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        // Sent Message
-        builder.setMessage("Please turn on your GPS and allow to Send SMS. The application not working without that premmisions.")
+
+        // Set Message
+        builder.setMessage(getString(R.string.alertDialog))
                 // Set Title
                 .setTitle("Warning");
 
@@ -391,24 +403,27 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onFinish() {
                 if (isTimerEnabled) {
-                    sensSms();
+                    sendSms();
                 }
                 isTimerEnabled = false;
             }
         };
     }
 
-    private void sensSms() {
+    private void sendSms() {
         String mobile = getApplicationContext()
                 .getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE)
                 .getString("mobile1", "no");
 
-        // PRoblem me to message
-        smsManager.sendTextMessage(mobile, null,
-                getString(R.string.sos_msg) +
-                        getString(R.string.lat) + strLat +
-                        getString(R.string.lon) + strLong +
-                        getString(R.string.end_sos_msg), null, null);
+        ArrayList<String> textSms = new ArrayList<>();
+        textSms.add(getString(R.string.sos_msg));
+        textSms.add(getString(R.string.lat));
+        textSms.add(strLat);
+        textSms.add(getString(R.string.lon));
+        textSms.add(strLong);
+        textSms.add(getString(R.string.end_sos_msg));
+
+        smsManager.sendMultipartTextMessage(mobile, null, textSms, null, null);
     }
 
 }

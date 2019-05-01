@@ -1,17 +1,17 @@
 package com.papadopoulou.christina.unipismartalert;
 
-import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
@@ -21,30 +21,59 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 
 public class LoginActivity extends AppCompatActivity {
 
     public static final String USERS = "users";
     protected FirebaseDatabase database;
-    public DatabaseReference myRef;
-    final ArrayList<String> dataBaseLoginUsers = new ArrayList<>();
+    private DatabaseReference myRef;
+    private final ArrayList<String> dataBaseLoginUsers = new ArrayList<>();
 
+    private SharedPreferences sharedPref;
+    private String language;
+    private Button buttonLogin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
+        // Read Languages from shared prefs
+        sharedPref = getApplicationContext()
+                .getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+
+        language = getApplicationContext()
+                .getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE)
+                .getString("language", "en");
+
+        // Apply Language
+        Locale locale  = new Locale(language);
+        Configuration config = getBaseContext().getResources().getConfiguration();
+        config.locale = locale;
+        getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
+
+        // Render view
+        setContentView(R.layout.activity_login);
+
+        // Find Views
         final EditText editTextName = findViewById(R.id.editTextName);
-        Button buttonLogin = findViewById(R.id.buttonLogin);
+        buttonLogin = findViewById(R.id.buttonLogin);
         Button buttonSignUp = findViewById(R.id.buttonSingUp);
+        Switch switchLanguage = findViewById(R.id.switchLanguage);
 
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference(USERS);
+        buttonLogin.setEnabled(false);
+
+        // Init switch
+        if(language.equals("en")){
+            switchLanguage.setChecked(false);
+        }else{
+            switchLanguage.setChecked(true);
+        }
 
         // Read database
-        myRef.addValueEventListener(valueEventListener);
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference(USERS);
 
         buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,8 +83,12 @@ public class LoginActivity extends AppCompatActivity {
 
                 if(currentLoginUsername.equals("")){ return; }
 
+<<<<<<< HEAD
 
                 // Check if user exists from Array List
+=======
+                // Check if user exists
+>>>>>>> UnipiSmartAlert/dev-christina
                 for (String loginUser: dataBaseLoginUsers) {
                     if (loginUser.equals(currentLoginUsername)) {
                         userExist = true;
@@ -84,6 +117,27 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+
+        switchLanguage.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                SharedPreferences.Editor editor = sharedPref.edit();
+
+                if(isChecked){
+                    editor.putString("language", "el");
+                }else{
+                    editor.putString("language", "en");
+                }
+
+                editor.apply();
+
+                // Restart Activity
+                Intent intent = getIntent();
+                finish();
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -91,6 +145,12 @@ public class LoginActivity extends AppCompatActivity {
         super.onStop();
         // Remove listener because when i change my database the event listener called in All Activity
         myRef.removeEventListener(valueEventListener);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        myRef.addValueEventListener(valueEventListener);
     }
 
     ValueEventListener valueEventListener =  new ValueEventListener() {
@@ -101,6 +161,7 @@ public class LoginActivity extends AppCompatActivity {
                 String dataBaseUser = currentDataSnapshot.getKey();
                 dataBaseLoginUsers.add(dataBaseUser);
             }
+            buttonLogin.setEnabled(true);
         }
 
         @Override

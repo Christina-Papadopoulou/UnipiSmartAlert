@@ -5,20 +5,22 @@ import java.util.Date;
 public class Characteristics {
     private double lat;
     private double longt;
-    private boolean alarmAbort;
-    private boolean quakeDetection;
+    private int countAlarmAbort;
+    private int countSos;
+    private boolean fallAborted;
 
-    public Characteristics(String strLat, String strLong, boolean alarmAbort) {
+    public Characteristics() {
     }
 
-    Characteristics(double lat, double longt, boolean alarmAbort) {
+    public Characteristics(double lat, double longt, boolean fallAborted) {
         this.lat = lat;
         this.longt = longt;
-        this.alarmAbort = alarmAbort;
+        this.fallAborted = fallAborted;
     }
 
-    Characteristics(boolean quakeDetection) {
-        this.quakeDetection = quakeDetection;
+    public Characteristics( int countAlarmAbort, int countSos) {
+        this.countAlarmAbort = countAlarmAbort;
+        this.countSos = countSos;
     }
 
     public double getLat() {
@@ -37,19 +39,27 @@ public class Characteristics {
         this.longt = longt;
     }
 
-    public boolean isAlarmAbort() {
-        return alarmAbort;
+    public int getCountAlarmAbort() {
+        return countAlarmAbort;
     }
 
-    public void setAlarmAbort(boolean alarmAbort) {
-        this.alarmAbort = alarmAbort;
+    public void setCountAlarmAbort(int countAlarmAbort) {
+        this.countAlarmAbort = countAlarmAbort;
     }
 
-    public boolean isQuakeDetection() {
-        return quakeDetection;
+    public int getCountSos() {
+        return countSos;
     }
 
-    public void setQuakeDetection(boolean quakeDetection) {
-        this.quakeDetection = quakeDetection;
+    public void setCountSos(int countSos) {
+        this.countSos = countSos;
+    }
+
+    public boolean isFallAborted() {
+        return fallAborted;
+    }
+
+    public void setFallAborted(boolean fallAborted) {
+        this.fallAborted = fallAborted;
     }
 }
