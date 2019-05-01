@@ -20,7 +20,7 @@ import static com.papadopoulou.christina.unipismartalert.LoginActivity.USERS;
 
 public class SingUpActivity extends AppCompatActivity {
     private DatabaseReference myRef;
-    private ValueEventListener valueEventListener;
+    private final ArrayList<String> dataBaseUsers = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,23 +33,8 @@ public class SingUpActivity extends AppCompatActivity {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         myRef = database.getReference(USERS);
 
-        final ArrayList<String> dataBaseUsers = new ArrayList<>();
 
-        valueEventListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
-                    String user = currentDataSnapshot.getKey();
-                    dataBaseUsers.add(user);
-                }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        };
-        myRef.addValueEventListener(valueEventListener);
 
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,8 +50,8 @@ public class SingUpActivity extends AppCompatActivity {
                 }
 
                 if(!userExist) {
-                    User newUser = new User(editTextUsername.getText().toString().trim().toLowerCase());
-                    myRef.child(newUser.getUsername()).setValue("");
+                    Characteristics characteristics = new Characteristics(0, 0);
+                    myRef.child(currenUserName).setValue(characteristics);
 
                     Toast.makeText(getApplicationContext(), getString(R.string.register_success), Toast.LENGTH_SHORT).show();
                     finish();
@@ -77,9 +62,32 @@ public class SingUpActivity extends AppCompatActivity {
         });
     }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        myRef.addValueEventListener(valueEventListener);
+    }
+
     @Override
     protected void onStop() {
         super.onStop();
         myRef.removeEventListener(valueEventListener);
     }
+
+    ValueEventListener valueEventListener = new ValueEventListener() {
+        @Override
+        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+            for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
+                String user = currentDataSnapshot.getKey();
+                dataBaseUsers.add(user);
+            }
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+        }
+    };
+
 }
