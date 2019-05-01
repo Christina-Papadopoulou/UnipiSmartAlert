@@ -83,12 +83,6 @@ public class LoginActivity extends AppCompatActivity {
 
                 if(currentLoginUsername.equals("")){ return; }
 
-<<<<<<< HEAD
-
-                // Check if user exists from Array List
-=======
-                // Check if user exists
->>>>>>> UnipiSmartAlert/dev-christina
                 for (String loginUser: dataBaseLoginUsers) {
                     if (loginUser.equals(currentLoginUsername)) {
                         userExist = true;

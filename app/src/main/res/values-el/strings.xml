@@ -9,6 +9,7 @@
     <string name="sos">SOS</string>
     <string name="abort">ΑΚΥΡΩΣΗ</string>
     <string name="preference_file_key">preference_file</string>
+    <string name="initcount">3</string>
 
     <string name="sos_msg">Βρίσκομαι στην τοπθεσία με </string>
     <string name="lat">γεωργραφικό πλάτος</string>
