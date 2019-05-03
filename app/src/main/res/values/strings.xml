@@ -1,3 +1,24 @@
 <resources>
     <string name="app_name">UnipiSmartAlert</string>
+    <string name="sign_up">Sing up</string>
+    <string name="login">Login</string>
+    <string name="title_activity_sing_up">SingUpActivity</string>
+    <string name="username">USERNAME</string>
+    <string name="register">REGISTER</string>
+    <string name="sos">SOS</string>
+    <string name="abort">ABORT</string>
+    <string name="preference_file_key">preference_file</string>
+    <string name="sos_msg">I am in location in</string>
+    <string name="lat">Latitude</string>
+    <string name="lon"> and Longitude</string>
+    <string name="end_sos_msg">I need help</string>
+    <string name="login_succes">Login Success</string>
+    <string name="login_error">The user does not exists. Please Sing Up</string>
+    <string name="register_success">The user created successful !!!</string>
+    <string name="register_error">The user exists. Enter another username</string>
+    <string name="statistics">statistics</string>
+    <string name="initcount">3</string>
+    <string name="alertDialog">Please turn on your GPS and allow to Send SMS. The application not working without that premmisions.</string>
+    <string name="earth">EARTHQUAKE !!!</string>
+
 </resources>

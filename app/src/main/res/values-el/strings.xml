@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">UnipiSmartAlert</string>
+    <string name="sign_up">ΕΓΓΡΑΦΗ</string>
+    <string name="login">ΕΙΣΟΔΟΣ</string>
+    <string name="title_activity_sing_up">SingUpActivity</string>
+    <string name="username">ΟΝΟΜΑ ΧΡΗΣΤΗ</string>
+    <string name="register">ΕΓΓΡΑΦΗ</string>
+    <string name="sos">SOS</string>
+    <string name="abort">ΑΚΥΡΩΣΗ</string>
+    <string name="preference_file_key">preference_file</string>
+    <string name="initcount">3</string>
+
+    <string name="sos_msg">Βρίσκομαι στην τοπθεσία με </string>
+    <string name="lat">γεωργραφικό πλάτος</string>
+    <string name="lon"> και γεωργραφικό μηκός</string>
+    <string name="end_sos_msg">Χρειάζομαι βοήθεια</string>
+    <string name="login_succes">Είσοδος επιτυχής</string>
+    <string name="login_error">Ο χρήστης δεν υπάρχει. Παρακαλώ κάνετε εγγραφή</string>
+    <string name="register_success">Εγγραφήκατε επιτυχώς !!!</string>
+    <string name="register_error">Ο χρήστης υπάρχει βάλτε αλλο όνομα</string>
+    <string name="statistics">statistics</string>
+    <string name="alertDialog">Παρακαλώ δώστε δικαίωμα να ανοίξει το gps και να αποστέλονται μηνύματα</string>
+</resources>
