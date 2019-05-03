@@ -13,7 +13,7 @@
 
     <string name="sos_msg">Βρίσκομαι στην τοπθεσία με </string>
     <string name="lat">γεωργραφικό πλάτος</string>
-    <string name="lon"> και γεωργραφικό μηκός> </string>
+    <string name="lon"> και γεωργραφικό μηκός</string>
     <string name="end_sos_msg">Χρειάζομαι βοήθεια</string>
     <string name="login_succes">Είσοδος επιτυχής</string>
     <string name="login_error">Ο χρήστης δεν υπάρχει. Παρακαλώ κάνετε εγγραφή</string>

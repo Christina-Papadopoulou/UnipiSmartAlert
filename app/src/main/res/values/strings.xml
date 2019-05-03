@@ -10,7 +10,7 @@
     <string name="preference_file_key">preference_file</string>
     <string name="sos_msg">I am in location in</string>
     <string name="lat">Latitude</string>
-    <string name="lon"> and Longitude> </string>
+    <string name="lon"> and Longitude</string>
     <string name="end_sos_msg">I need help</string>
     <string name="login_succes">Login Success</string>
     <string name="login_error">The user does not exists. Please Sing Up</string>
@@ -19,5 +19,6 @@
     <string name="statistics">statistics</string>
     <string name="initcount">3</string>
     <string name="alertDialog">Please turn on your GPS and allow to Send SMS. The application not working without that premmisions.</string>
+    <string name="earth">EARTHQUAKE !!!</string>
 
 </resources>
