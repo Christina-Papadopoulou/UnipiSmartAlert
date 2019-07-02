@@ -386,7 +386,7 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
 
     private void writeToSharedPref(SharedPreferences sharedPref) {
         SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString("mobile1", "6971626722");
+        editor.putString("mobile1", "6944051295");
         editor.apply();
     }
 
