@@ -38,7 +38,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.SEND_SMS;
@@ -195,11 +197,14 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
         super.onStop();
         // Remove listener because when i change my database the event listener called in All Activity
         myRef.removeEventListener(valueEventListener);
+        sensorManager.unregisterListener(this);
 
         // Remove broadcast receiver
-        if(broadcastReceiver == null) return;
+        if(broadcastReceiver == null || countDownTimer == null) return;
+
         unregisterReceiver(broadcastReceiver);
 
+        countDownTimer.cancel();
         //Close the Text to Speech Library
         if(tts != null) {
             tts.stop();
@@ -209,6 +214,8 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
     //==============================================================================================
     // READ DATABASE
     //==============================================================================================
+    ArrayList<String> dateQuakes = new ArrayList<>();
+
     ValueEventListener valueEventListener = new ValueEventListener() {
         @Override
         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -220,14 +227,14 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
                 }
 
                 for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
-                    String quakeDate = currentDataSnapshot.child("quakes").getKey();
-
-                    if (quakeDate.equals(currentDate)) {
-                        count++;
-                    }
+                    String user = currentDataSnapshot.getKey();
+                    String dateQuake = (String) dataSnapshot.child(user).child("quakes").getValue();
+                    dateQuakes.add(dateQuake);
                 }
 
-                if (count >= 5) {
+                int duplicates = getDupCount(dateQuakes);
+
+                if (duplicates >= 2) {
                     Toast.makeText(getApplicationContext(), getString(R.string.earth), Toast.LENGTH_SHORT).show();
                 }
             }else{
@@ -242,6 +249,19 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
 
         }
     };
+
+
+    public int getDupCount(ArrayList<String> l) {
+        int cnt = 0;
+        HashSet<String> h = new HashSet<>(l);
+
+        for (String token : h) {
+            if (Collections.frequency(l, token) > 1)
+                cnt++;
+        }
+
+        return cnt;
+    }
 
     //==============================================================================================
     // ACCELEROMETER LISTENER
@@ -272,8 +292,7 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
                     //Add it on firebase
                     myRef.child(userName)
                             .child("quakes")
-                            .child(currentDate)
-                            .setValue(true);
+                            .setValue(currentDate);
                 }
             }
         // If z == 0 and timer is not running we have fall
@@ -282,7 +301,10 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
             buttonAbort.setEnabled(true);
             countDownTimer.start();
             currentFallingSituation = new Characteristics(Double.parseDouble(strLat), Double.parseDouble(strLong), false);
+
+            if (currentDate == null) return;
             currentDate = String.valueOf(new Date());
+
             // Add a branch on currentDate in firebase
             // Example jim -> falls-> Date -> Characteristics
             myRef.child(userName)
