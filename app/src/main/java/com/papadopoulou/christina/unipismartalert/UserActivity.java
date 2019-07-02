@@ -232,11 +232,13 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
                     dateQuakes.add(dateQuake);
                 }
 
-                int duplicates = getDupCount(dateQuakes);
+                for(int i = 0; i < dateQuakes.size(); i++)
+                    for(int j = i + 1; j < dateQuakes.size(); j++)
 
-                if (duplicates >= 2) {
-                    Toast.makeText(getApplicationContext(), getString(R.string.earth), Toast.LENGTH_SHORT).show();
-                }
+                        if(dateQuakes.get(i).equals(dateQuakes.get(j))){
+                            Toast.makeText(getApplicationContext(), getString(R.string.earth), Toast.LENGTH_SHORT).show();
+                        }
+
             }else{
                 tempCharacteristics = dataSnapshot.child(userName).getValue(Characteristics.class);
                 countSos = tempCharacteristics.getCountSos();
@@ -251,17 +253,6 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
     };
 
 
-    public int getDupCount(ArrayList<String> l) {
-        int cnt = 0;
-        HashSet<String> h = new HashSet<>(l);
-
-        for (String token : h) {
-            if (Collections.frequency(l, token) > 1)
-                cnt++;
-        }
-
-        return cnt;
-    }
 
     //==============================================================================================
     // ACCELEROMETER LISTENER
