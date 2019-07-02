@@ -9,10 +9,11 @@
     <string name="sos">SOS</string>
     <string name="abort">ΑΚΥΡΩΣΗ</string>
     <string name="preference_file_key">preference_file</string>
+    <string name="initcount">3</string>
 
     <string name="sos_msg">Βρίσκομαι στην τοπθεσία με </string>
     <string name="lat">γεωργραφικό πλάτος</string>
-    <string name="lon"> και γεωργραφικό μηκός> </string>
+    <string name="lon"> και γεωργραφικό μηκός</string>
     <string name="end_sos_msg">Χρειάζομαι βοήθεια</string>
     <string name="login_succes">Είσοδος επιτυχής</string>
     <string name="login_error">Ο χρήστης δεν υπάρχει. Παρακαλώ κάνετε εγγραφή</string>

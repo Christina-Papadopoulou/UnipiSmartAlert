@@ -42,7 +42,6 @@
             android:text="EN"
             android:textSize="30sp" />
 
-
         <Switch
             android:id="@+id/switchLanguage"
             android:layout_width="wrap_content"
@@ -56,5 +55,4 @@
             android:textSize="30sp" />
 
     </LinearLayout>
-
 </RelativeLayout>

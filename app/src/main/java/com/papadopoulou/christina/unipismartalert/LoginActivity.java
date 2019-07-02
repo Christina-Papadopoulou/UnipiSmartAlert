@@ -83,7 +83,6 @@ public class LoginActivity extends AppCompatActivity {
 
                 if(currentLoginUsername.equals("")){ return; }
 
-                // Check if user exists
                 for (String loginUser: dataBaseLoginUsers) {
                     if (loginUser.equals(currentLoginUsername)) {
                         userExist = true;
@@ -94,6 +93,7 @@ public class LoginActivity extends AppCompatActivity {
                 if(userExist){
                     // Start User Activity
                     Intent intent = new Intent(getApplicationContext(), UserActivity.class);
+                    // Send string data from LoginActivity to UserActivity
                     intent.putExtra("username", currentLoginUsername);
                     startActivity(intent);
                     Toast.makeText(getApplicationContext(), getString(R.string.login_succes), Toast.LENGTH_SHORT).show();

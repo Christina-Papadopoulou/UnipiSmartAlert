@@ -29,6 +29,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -69,16 +70,19 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
     // Sms Manager
     private SmsManager smsManager;
 
+    // TTS
+    private MyTts tts;
+
     // Public vars
     private Characteristics currentFallingSituation, tempCharacteristics;
-    private String currentDate = String.valueOf(new Date());
+    private String currentDate = null;
     private String userName;
-    private boolean isEarthQuakeDetection;
+    private boolean isChargedOn;
     private SharedPreferences sharedPref;
-    private ArrayList<String> earthQuakeDates = new ArrayList<>();
     private int count = 0, countSos = 0, countAbort = 0;
     private String strLat, strLong;
     private BroadcastReceiver broadcastReceiver;
+    private Button buttonAbort;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,31 +91,36 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
 
         // Init views
         TextView textViewTimer = findViewById(R.id.textViewTimer);
-        Button buttonAbort = findViewById(R.id.buttonAbort);
+        buttonAbort = findViewById(R.id.buttonAbort);
         Button buttonSos = findViewById(R.id.buttonSos);
-        Button buttonStatistics = findViewById(R.id.buttonStatistics);
+        buttonAbort.setEnabled(false);
 
-        // Init Shared Preferences
+        // Init Shared Preferences to store data that persist across user sessions even if app is killed
         sharedPref = getApplicationContext()
                 .getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+        // Write to shared Prefs
         writeToSharedPref(sharedPref);
 
         //Init media Player
         mediaPlayer = MediaPlayer.create(getBaseContext(), (R.raw.tick));
 
         // Init Timer
-        countDownTimer = initCountDownTimer(5000, textViewTimer);
+        countDownTimer = initCountDownTimer(3000, textViewTimer);
 
         //Init Sensor
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
+        // TTS
+        tts = new MyTts(getApplicationContext());
+
+        // Init Db
         userName = getIntent().getStringExtra("username");
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference(USERS);
 
-        isEarthQuakeDetection = getIntent().getBooleanExtra("readyEarthquake", false);
+        isChargedOn = getIntent().getBooleanExtra("readyEarthquake", false);
 
         // Check Premission
         if (checkPermission()) {
@@ -143,50 +152,27 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
             }
         });
 
+
         buttonSos.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                tts.speak("I need Help");
                 sendSms();
+
                 countSos++;
+                Toast.makeText(getApplicationContext(),
+                        getString(R.string.sos_msg) +
+                                getString(R.string.lat) +
+                                strLat + getString(R.string.lon) +
+                                strLong +
+                                getString(R.string.end_sos_msg),
+                        Toast.LENGTH_SHORT).show();
                 myRef.child(userName).child("countsos").setValue(countSos);
             }
         });
 
 
-        myRef.addValueEventListener(valueEventListener);
     }
-
-    ValueEventListener valueEventListener = new ValueEventListener() {
-        @Override
-        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-            tempCharacteristics = dataSnapshot.child(userName).getValue(Characteristics.class);
-            if (currentDate == null) {
-                return;
-            }
-            if (isEarthQuakeDetection) {
-                for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
-                    String quakeDate = currentDataSnapshot.child("quakes").child(currentDate).getKey();
-
-                    if (quakeDate.equals(currentDate)) {
-                        count++;
-                    }
-                }
-
-                if (count > 5) {
-                    Log.e("JIM", "Sismos ");
-                }
-            }
-
-            countSos = tempCharacteristics.getCountSos();
-            countAbort = tempCharacteristics.getCountAlarmAbort();
-        }
-
-        @Override
-        public void onCancelled(@NonNull DatabaseError databaseError) {
-
-        }
-    };
-
 
     @Override
     protected void onResume() {
@@ -198,12 +184,10 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
         IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         filter.addAction(Intent.ACTION_POWER_CONNECTED);
         filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
-        this.registerReceiver(broadcastReceiver, filter);
-    }
+        registerReceiver(broadcastReceiver, filter);
 
-    @Override
-    protected void onPause() {
-        super.onPause();
+        // Read Database
+        myRef.addValueEventListener(valueEventListener);
     }
 
     @Override
@@ -211,10 +195,53 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
         super.onStop();
         // Remove listener because when i change my database the event listener called in All Activity
         myRef.removeEventListener(valueEventListener);
-        if (broadcastReceiver == null) return;
+
+        // Remove broadcast receiver
+        if(broadcastReceiver == null) return;
         unregisterReceiver(broadcastReceiver);
+
+        //Close the Text to Speech Library
+        if(tts != null) {
+            tts.stop();
+        }
     }
 
+    //==============================================================================================
+    // READ DATABASE
+    //==============================================================================================
+    ValueEventListener valueEventListener = new ValueEventListener() {
+        @Override
+        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+            if (isChargedOn) {
+
+                if (currentDate == null) {
+                    return;
+                }
+
+                for (DataSnapshot currentDataSnapshot : dataSnapshot.getChildren()) {
+                    String quakeDate = currentDataSnapshot.child("quakes").getKey();
+
+                    if (quakeDate.equals(currentDate)) {
+                        count++;
+                    }
+                }
+
+                if (count >= 5) {
+                    Toast.makeText(getApplicationContext(), getString(R.string.earth), Toast.LENGTH_SHORT).show();
+                }
+            }else{
+                tempCharacteristics = dataSnapshot.child(userName).getValue(Characteristics.class);
+                countSos = tempCharacteristics.getCountSos();
+                countAbort = tempCharacteristics.getCountAlarmAbort();
+            }
+        }
+
+        @Override
+        public void onCancelled (@NonNull DatabaseError databaseError) {
+
+        }
+    };
 
     //==============================================================================================
     // ACCELEROMETER LISTENER
@@ -224,37 +251,37 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
     @SuppressLint("MissingPermission")
     @Override
     public void onSensorChanged(SensorEvent event) {
-        isEarthQuakeDetection = sharedPref.getBoolean("readyEarthquake", false);
+        isChargedOn = sharedPref.getBoolean("readyEarthquake", false);
 
         int x = Math.round(event.values[0]);
         int y = Math.round(event.values[1]);
         int z = Math.round(event.values[2]);
 
-        //Log.e("JIM"," "  + x  + " " + y + " "+ z);
         long currentTime = System.currentTimeMillis();
 
-        if (isEarthQuakeDetection) {
-
+        // When the mobile is on charge
+        if (isChargedOn) {
+            // Every 1000millisecond
             if (currentTime - pastTime > 1000) {
                 pastTime = System.currentTimeMillis();
 
+                // Check if my mobile was shaked
                 if (x >= 2 || x < 0 || y > 1 || y < -1) {
+                    //Take the date of the quake
                     currentDate = String.valueOf(new Date());
+                    //Add it on firebase
                     myRef.child(userName)
                             .child("quakes")
                             .child(currentDate)
                             .setValue(true);
-
-                    //Log.e("JIM", "quake");
                 }
-//               Log.e("JIM", " " + x + " " + y + " " + z);
-
             }
-
+        // If z == 0 and timer is not running we have fall
         } else if (z == 0 & !isTimerEnabled) {
             isTimerEnabled = true;
+            buttonAbort.setEnabled(true);
             countDownTimer.start();
-            currentFallingSituation = new Characteristics(Double.parseDouble(strLat), Double.parseDouble(strLong), true);
+            currentFallingSituation = new Characteristics(Double.parseDouble(strLat), Double.parseDouble(strLong), false);
             currentDate = String.valueOf(new Date());
             // Add a branch on currentDate in firebase
             // Example jim -> falls-> Date -> Characteristics
@@ -263,8 +290,6 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
                     .child(currentDate)
                     .setValue(currentFallingSituation);
         }
-
-//        Log.e("JIM", " " + x + " " + y + " " + z);
     }
 
     @Override
@@ -340,12 +365,13 @@ public class UserActivity extends AppCompatActivity implements SensorEventListen
     private void showAlertDialog() {
         // Create Builder
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
         // Set Message
         builder.setMessage(getString(R.string.alertDialog))
                 // Set Title
                 .setTitle("Warning");
 
-        // Set Listner for on click OK
+        // Set Listener for on click OK
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {

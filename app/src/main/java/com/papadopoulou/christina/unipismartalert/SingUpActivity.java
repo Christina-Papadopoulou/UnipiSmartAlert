@@ -33,16 +33,16 @@ public class SingUpActivity extends AppCompatActivity {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         myRef = database.getReference(USERS);
 
-
-
-
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //Take the input of the user and make it to string, to lowercases and without spaces
                 String currenUserName = editTextUsername.getText().toString().trim().toLowerCase();
                 boolean userExist = false;
+                // Username "" is not acceptable
                 if(currenUserName.equals("")){ return; }
 
+                //Read all users from Array List dataBaseUsers
                 for (String user: dataBaseUsers) {
                     if(user.equals(currenUserName)){
                         userExist = true;
@@ -54,8 +54,10 @@ public class SingUpActivity extends AppCompatActivity {
                     myRef.child(currenUserName).setValue(characteristics);
 
                     Toast.makeText(getApplicationContext(), getString(R.string.register_success), Toast.LENGTH_SHORT).show();
+                    //Destroy Activity
                     finish();
                 }else{
+                    //If username exists, inform user that "The user exists. Enter another username"
                     Toast.makeText(getApplicationContext(), getString(R.string.register_error), Toast.LENGTH_SHORT).show();
                 }
             }
@@ -72,6 +74,8 @@ public class SingUpActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        //When Activity is onStop I remove valueEventListener otherwise it will be called everywhere in my app
+        //when i would have a change in a user
         myRef.removeEventListener(valueEventListener);
     }
 
